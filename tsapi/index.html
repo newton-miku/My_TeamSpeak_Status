@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>TS服务器状态</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
+    <link href="https://cdn.bootcss.com/font-awesome/6.4.0/css/all.css" rel="stylesheet">
+    <!--<script src="https://kit.fontawesome.com/394832e9e3.js" crossorigin="anonymous"></script>-->
+    <style>
+        .icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+
+        .list-group-item {
+            line-height: 1.2;
+        }
+
+        .online {
+            color: green;
+        }
+
+        .offline {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-6">
+                <h2 class="text-primary"><i class="fas fa-server"></i> TS服务器状态</h2>
+                <hr>
+                <p class="text-secondary"><i class="fas fa-clock"></i> 运行时长：<span id="times"></span></p>
+                <p class="text-secondary"><i class="fas fa-users"></i> 在线人数：<span class="ts3_clientcount"></span></p>
+                <p class="text-secondary"><i class="fas fa-traffic-light"></i> 服务器状态：<span class="ts3status"></span></p>
+                <hr>
+                <h5 class="text-primary"><i class="fas fa-users"></i> 在线客户端列表</h5>
+                <ul class="list-group ts3-client-list"></ul>
+            </div>
+            <div class="col-md-6">
+                <h2 class="text-primary"><i class="fas fa-link"></i> 加入服务器</h2>
+                <hr>
+                <p><a href="ts3server://gz.ddxnb.cn" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i>
+                        入口1</a>&nbsp&nbsp
+                    <a href="ts3server://tsapi.ddxnb.cn" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i>
+                        入口2</a>
+                </p>
+                <hr>
+                <h4 class="text-primary"><i class="fas fa-download"></i> 下载TeamSpeak</h4>
+                <hr>
+                <p><a href="https://ts3.com.cn/downloads/teamspeak" class="btn btn-primary" target="blank"><i
+                            class="fas fa-cloud-download-alt"></i> 下载</a></p>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function updateTime() {
+            if (document.visibilityState === 'visible') {
+                $.get('api.php', function (data) {
+                    $('#times').html(data.uptimeStr + '&nbsp;');
+                    $('.ts3_clientcount').html('<i class="fas fa-user"></i>&nbsp;' + data.online_count + '/' + data.max_count);
+                    $('.ts3status').html('<i class="fas fa-server"></i>&nbsp;' + data.status);
+                    var ServerElem = $('.ts3status');
+                    if (data.status == "在线") {
+                        ServerElem.addClass('online').removeClass('offline');
+                    } else {
+                        ServerElem.addClass('offline').removeClass('online');
+                    }
+                    $('.ts3-client-list').empty();
+                    if (data.online_count > 0) {
+                        $.each(data.online_clients, function (i, client) {
+                            var platformIcon = '';
+                            switch (client.platform) {
+                                case 'Windows':
+                                    platformIcon = '<i class="fab fa-windows"></i>';
+                                    break;
+                                case 'macOS':
+                                    platformIcon = '<i class="fab fa-apple"></i>';
+                                    break;
+                                case 'Linux':
+                                    platformIcon = '<i class="fab fa-linux"></i>';
+                                    break;
+                                case 'iOS':
+                                    platformIcon = '<i class="fab fa-apple"></i>';
+                                    break;
+                                case 'Android':
+                                    platformIcon = '<i class="fab fa-android"></i>';
+                                    break;
+                                default:
+                                    platformIcon = '<i class="fas fa-desktop"></i>';
+                                    break;
+                            }
+                            $('.ts3-client-list').append('<li class="list-group-item"><i class="fas fa-user"></i>&nbsp;' + client.name + '<br><i class="fas fa-laptop"></i>&nbsp;在用 ' + platformIcon + ' (' + client.platform + '） 设备<br><i class="fas fa-code-branch"></i>&nbsp;软件版本' + client.version + '<br><i class="far fa-clock"></i>&nbsp;在线时长：' + client.liveTime + '<br><i class="fas fa-sitemap"></i>&nbsp;所在频道：' + client.channel + '</li>');
+                        });
+                    } else {
+                        $('.ts3-client-list').append('<li class="list-group-item">当前无在线客户端&nbsp;<i class="fas fa-frown"></i></li>');
+                    }
+                });
+            }
+        }
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+
+</html>
